@@ -5,17 +5,18 @@ import com.exercise.guangqi.model.File;
 import com.exercise.guangqi.model.Note;
 import com.exercise.guangqi.model.User;
 import com.exercise.guangqi.service.UserService;
+import org.springframework.http.*;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 
 @Controller
@@ -55,8 +56,14 @@ public class HomeController {
     }
 
     @GetMapping("/note/delete")
-    String deleteNoteById(@RequestParam String noteid, Model model){
-        userService.deleteNoteById(Integer.parseInt(noteid));
+    String deleteNoteById(@RequestParam Integer noteid, Model model, Authentication authentication){
+        User user = userService.getUser(authentication.getName());
+        List<Note> noteList = userService.getAllNotesByUserId(user.getUserId());
+        Optional<Note> note = noteList.stream().filter(n -> n.getNoteId().equals(noteid)).findFirst();
+        if(note.isPresent())
+            userService.deleteNoteById(noteid);
+        else
+            model.addAttribute("error", "Do not have auth");
         return "redirect:/home";
     }
 
@@ -75,8 +82,15 @@ public class HomeController {
     }
 
     @GetMapping("/credential/delete")
-    String deleteCredentialById(@RequestParam int credentialid, Model model){
-        userService.deleteCredentialById(credentialid);
+    String deleteCredentialById(@RequestParam Integer credentialid, Model model, Authentication authentication){
+        User user = userService.getUser(authentication.getName());
+        List<Credential> credentialList = userService.getAllCredentialsByUserId(user.getUserId());
+        Optional<Credential> credential =
+                credentialList.stream().filter(c -> c.getCredentialId().equals(credentialid)).findFirst();
+        if(credential.isPresent())
+            userService.deleteCredentialById(credentialid);
+        else
+            model.addAttribute("error", "Do not have auth");
         return "redirect:/home";
     }
 
@@ -87,5 +101,38 @@ public class HomeController {
                 Long.toString(fileupload.getSize()), user.getUserId(),fileupload.getBytes());
         userService.uploadFile(file);
         return "redirect:/home";
+    }
+
+    //Make sure the user can not delete the file he does not owns.
+
+    @GetMapping("/file/delete")
+    String deleteFileById(Authentication authentication, @RequestParam("fileid") Integer fileId, Model model){
+        User user = userService.getUser(authentication.getName());
+        List<File> fileList = userService.getFileListByUserid(user.getUserId());
+        Optional<File> file = fileList.stream().filter(f -> f.getFileId().equals(fileId)).findFirst();
+        if(file.isPresent())
+            userService.deleteFileById(fileId);
+        else
+            model.addAttribute("error", "Do not have authentication");
+        return "redirect:/home";
+    }
+
+    @GetMapping(value = "/file/{fileid}")
+    @ResponseBody
+    ResponseEntity<?> fileView(Authentication authentication, @PathVariable Integer fileid){
+        User user = userService.getUser(authentication.getName());
+        List<File> fileList = userService.getFileListByUserid(user.getUserId());
+        Optional<File> file = fileList.stream().filter(f -> f.getFileId().equals(fileid)).findFirst();
+        if(file.isPresent()){
+            String contentType = file.get().getContentType();
+            byte[] data = userService.getFileDataById(fileid);
+            if(data != null){
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.valueOf(contentType));
+                return new ResponseEntity<>(data,headers, HttpStatus.OK);
+            }
+        }
+        String errorMessage = fileid.toString() + " not found.";
+        return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     }
 }

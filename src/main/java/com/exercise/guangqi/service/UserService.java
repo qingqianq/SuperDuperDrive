@@ -109,4 +109,12 @@ public class UserService {
     public List<File> getFileListByUserid(Integer userId) {
         return fileMapper.getFileListByUserid(userId);
     }
+
+    public void deleteFileById(Integer fileId) {
+        fileMapper.deleteFileById(fileId);
+    }
+
+    public byte[] getFileDataById(Integer fileid) {
+        return fileMapper.getFileDataById(fileid).getFiledata();
+    }
 }

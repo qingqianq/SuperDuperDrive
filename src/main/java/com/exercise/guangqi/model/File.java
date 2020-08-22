@@ -1,6 +1,8 @@
 package com.exercise.guangqi.model;
 
 
+import java.util.Arrays;
+
 public class File {
     private Integer fileId;
     private String fileName;
@@ -8,6 +10,10 @@ public class File {
     private String fileSize;
     private Integer userId;
     private byte[] filedata;
+
+    public File(byte[] filedata){
+        this.filedata = filedata;
+    }
 
     public File(Integer fileId, String fileName, String contentType, String fileSize, Integer userId, byte[] filedata) {
         this.fileId = fileId;
@@ -71,5 +77,17 @@ public class File {
 
     public void setFiledata(byte[] filedata) {
         this.filedata = filedata;
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "fileId=" + fileId +
+                ", fileName='" + fileName + '\'' +
+                ", contentType='" + contentType + '\'' +
+                ", fileSize='" + fileSize + '\'' +
+                ", userId=" + userId +
+                ", filedata=" + Arrays.toString(filedata) +
+                '}';
     }
 }
