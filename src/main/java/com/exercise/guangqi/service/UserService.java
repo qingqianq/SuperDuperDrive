@@ -1,9 +1,11 @@
 package com.exercise.guangqi.service;
 
 import com.exercise.guangqi.mapper.CredentialMapper;
+import com.exercise.guangqi.mapper.FileMapper;
 import com.exercise.guangqi.mapper.NoteMapper;
 import com.exercise.guangqi.mapper.UserMapper;
 import com.exercise.guangqi.model.Credential;
+import com.exercise.guangqi.model.File;
 import com.exercise.guangqi.model.Note;
 import com.exercise.guangqi.model.User;
 import org.springframework.stereotype.Service;
@@ -19,13 +21,15 @@ public class UserService {
     final private EncryptionService encryptionService;
     final private NoteMapper noteMapper;
     final private CredentialMapper credentialMapper;
+    final private FileMapper fileMapper;
 
-    public UserService(UserMapper userMapper, HashService hashService, EncryptionService encryptionService, NoteMapper noteMapper, CredentialMapper credentialMapper) {
+    public UserService(UserMapper userMapper, HashService hashService, EncryptionService encryptionService, NoteMapper noteMapper, CredentialMapper credentialMapper, FileMapper fileMapper) {
         this.userMapper = userMapper;
         this.hashService = hashService;
         this.encryptionService = encryptionService;
         this.noteMapper = noteMapper;
         this.credentialMapper = credentialMapper;
+        this.fileMapper = fileMapper;
     }
 
     public boolean isUsernameAvailable(String username) {
@@ -83,12 +87,26 @@ public class UserService {
     }
 
     public int updateCredential(Credential credential) {
-        String encrptedPassword = encryptionService.encryptValue(credential.getPassword(),credential.getKey());
+        Credential c = getCredentialById(credential.getCredentialId());
+        String encrptedPassword = encryptionService.encryptValue(credential.getPassword(),c.getKey());
         credential.setPassword(encrptedPassword);
+        credential.setKey(c.getKey());
         return credentialMapper.updateCredential(credential);
+    }
+
+    private Credential getCredentialById(Integer credentialId) {
+        return credentialMapper.getCreDentialById(credentialId);
     }
 
     public void deleteCredentialById(int credentialid) {
         credentialMapper.deleteCredentialById(credentialid);
+    }
+
+    public int uploadFile(File file) {
+        return fileMapper.uploadFile(file);
+    }
+
+    public List<File> getFileListByUserid(Integer userId) {
+        return fileMapper.getFileListByUserid(userId);
     }
 }
