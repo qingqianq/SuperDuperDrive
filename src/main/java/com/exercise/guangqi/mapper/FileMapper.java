@@ -20,6 +20,6 @@ public interface FileMapper {
     void deleteFileById(Integer fileId);
 
 
-    @Select("SELECT filedata FROM FILES where userid = #{userId}")
+    @Select("SELECT filedata FROM FILES where fileid = #{fileId}")
     File getFileDataById(Integer fileid);
 }
