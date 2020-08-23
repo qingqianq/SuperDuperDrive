@@ -1,5 +1,6 @@
 package com.exercise.guangqi;
 
+import com.exercise.guangqi.page.HomePage;
 import com.exercise.guangqi.page.LoginPage;
 import com.exercise.guangqi.page.SignUpPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class SuperDuperDriveApplicationTests {
 	private LoginPage loginPage;
 	private SignUpPage signUpPage;
+	private HomePage homePage;
 	private static WebDriver driver;
 
 	@BeforeAll
@@ -22,13 +24,21 @@ class SuperDuperDriveApplicationTests {
 	}
 
 	@Test
-	void contextLoads() {
+	void contextLoads() throws InterruptedException {
 		signUp();
 		login();
+		driver.get("http://localhost:8080/home");
+		homePage = new HomePage(driver);
+		homePage.testAddCredential();
+		Thread.sleep(8000);
+		driver.get("http://localhost:8080/home");
+		homePage.testAddNote();
+		Thread.sleep(2000);
+		driver.quit();
 	}
 
 	@Test
-	void signUp(){
+	void signUp() throws InterruptedException {
 		driver.get("http://localhost:8080/signup");
 		signUpPage = new SignUpPage(driver);
 		signUpPage.setFirstNameField("a");
@@ -36,6 +46,7 @@ class SuperDuperDriveApplicationTests {
 		signUpPage.setUsernameField("a");
 		signUpPage.setPasswordField("a");
 		signUpPage.submit();
+		Thread.sleep(2000);
 	}
 
 	@Test
